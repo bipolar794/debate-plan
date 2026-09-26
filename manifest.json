@@ -3,6 +3,7 @@
   "short_name": "Debate",
   "start_url": "./index.html",
   "display": "standalone",
+  "orientation": "portrait"
   "background_color": "#0d1117",
   "theme_color": "#0d1117",
   "description": "Приложение для планирования речей в дебатах",
