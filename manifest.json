@@ -8,14 +8,14 @@
   "description": "Приложение для планирования речей в дебатах",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3074/3074128.png",
-      "sizes": "192x192",
+      "src": "./icon.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/3074/3074128.png",
-      "sizes": "512x512",
+      "src": "./icon.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     }
