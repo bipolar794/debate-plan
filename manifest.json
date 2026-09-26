@@ -1,13 +1,23 @@
 {
-  "background_color": "#ffffff",
-  "dir": "ltr",
-  "display": "standalone",
-  "name": "Debate App",
-  "orientation": "any",
-  "scope": "/",
+  "name": "Debate Speech Planner",
   "short_name": "Debate",
-  "start_url": "/",
-  "theme_color": "#ffffff",
-  "id": "debate-app-id",
-  "description": "Приложение для планирования тайминга дебатов"
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "description": "Приложение для планирования речей в дебатах",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3074/3074128.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3074/3074128.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
