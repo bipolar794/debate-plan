@@ -1,7 +1,7 @@
- <!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <link rel="manifest" href="manifest.json">
+   <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Debate Speech Planner & Timer</title>
@@ -33,7 +33,7 @@
         }
     </script>
     <style>
-        body {
+        html, body {
             background-color: #0b0c10;
             color: #e2e8f0;
             font-family: 'Inter', sans-serif;
@@ -41,6 +41,8 @@
             -webkit-tap-highlight-color: transparent;
             padding-top: env(safe-area-inset-top);
             padding-bottom: env(safe-area-inset-bottom);
+            /* ОТКЛЮЧЕНИЕ ПЕРЕЗАГРУЗКИ ПО СВАЙПУ ВНИЗ (PULL-TO-REFRESH) */
+            overscroll-behavior-y: contain;
         }
 
         .no-scrollbar::-webkit-scrollbar {
@@ -75,7 +77,6 @@
             box-shadow: 0 0 0 3px #8b5cf6, 0 0 15px rgba(139, 92, 246, 0.4);
         }
 
-        /* Fix font rendering & text clipping on Mobile Chrome/Android */
         * {
             -webkit-font-smoothing: antialiased;
             text-rendering: optimizeLegibility;
@@ -295,7 +296,7 @@
             </div>
         </div>
 
-        <div id="speechContentArea" class="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 max-w-3xl mx-auto w-full"></div>
+        <div id="speechContentArea" class="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 max-w-3xl mx-auto w-full overscroll-contain"></div>
     </div>
 
     <script>
@@ -315,7 +316,7 @@
         let isTimerRunning = false;
         let elapsedSeconds = 0;
 
-        let blocks = [
+        let defaultBlocks = [
             { id: 1, title: 'Введение и хук', category: 'intro', durationSec: 105, detail: 'Введение, хук и фрейминг темы', notes: 'Привлечь внимание судей. Описать актуальность темы.' },
             { id: 2, title: 'Аргумент 1', category: 'arguments', durationSec: 60, detail: 'Аргумент 1: Причинно-следственные связи', notes: 'Тезис: Изменение политики приведет к экономическому росту.' },
             { id: 3, title: 'Доказательства', category: 'evidence', durationSec: 45, detail: 'Поддержка фактами и примерами', notes: 'Привести в пример исследование 2023 года.' },
@@ -323,6 +324,21 @@
             { id: 5, title: 'Контраргументы', category: 'evidence', durationSec: 40, detail: 'Превентивное опровержение', notes: 'Перехватить возможную атаку оппозиции о рисках.' },
             { id: 6, title: 'Финал', category: 'conclusion', durationSec: 50, detail: 'Заключение и сравнение миров', notes: 'Подвести итог, призвать сопоставить последствия.' }
         ];
+
+        let blocks = loadSavedBlocks() || defaultBlocks;
+
+        function saveBlocksToStorage() {
+            try {
+                localStorage.setItem('debate_speech_blocks', JSON.stringify(blocks));
+            } catch(e) { console.error('LocalStorage error', e); }
+        }
+
+        function loadSavedBlocks() {
+            try {
+                const saved = localStorage.getItem('debate_speech_blocks');
+                return saved ? JSON.parse(saved) : null;
+            } catch(e) { return null; }
+        }
 
         function getScenarioPreset(role, order) {
             if (role === 'gov' && order === 1) {
@@ -381,6 +397,7 @@
         function applyScenarioPreset() {
             blocks = getScenarioPreset(currentRole, currentOrder);
             activeBlockIndex = 0;
+            saveBlocksToStorage();
             renderApp();
         }
 
@@ -396,6 +413,7 @@
                     { id: 4, title: 'Призыв к действию', category: 'conclusion', durationSec: 30, detail: 'CTA', notes: '' }
                 ];
                 activeBlockIndex = 0;
+                saveBlocksToStorage();
                 renderApp();
             }
         }
@@ -480,6 +498,7 @@
             const seconds = parseInt(val, 10);
             if (blocks[activeBlockIndex]) {
                 blocks[activeBlockIndex].durationSec = seconds;
+                saveBlocksToStorage();
                 renderApp();
             }
         }
@@ -501,6 +520,7 @@
                 notes: ''
             });
             activeBlockIndex = blocks.length - 1;
+            saveBlocksToStorage();
             renderApp();
         }
 
@@ -526,6 +546,7 @@
             if (editingBlockIndex !== null && blocks[editingBlockIndex]) {
                 blocks[editingBlockIndex].detail = document.getElementById('modalBlockDetail').value;
                 blocks[editingBlockIndex].notes = document.getElementById('modalBlockNotes').value;
+                saveBlocksToStorage();
             }
             closeNotesModal();
             renderApp();
@@ -542,6 +563,8 @@
 
             renderSpeechContent();
             document.getElementById('speechModal').classList.remove('hidden');
+
+            if (timerInterval) clearInterval(timerInterval);
 
             timerInterval = setInterval(() => {
                 if (isTimerRunning) {
@@ -570,7 +593,7 @@
         }
 
         function stopSpeechView() {
-            clearInterval(timerInterval);
+            if (timerInterval) clearInterval(timerInterval);
             isTimerRunning = false;
             document.getElementById('speechModal').classList.add('hidden');
         }
@@ -609,9 +632,10 @@
             highlightSpeechActiveBlock();
         }
 
+        /* ИСПРАВЛЕННЫЙ РАСЧЕТ АКТИВНОГО БЛОКА ПО ТАЙМЕРУ */
         function highlightSpeechActiveBlock() {
             let accumulatedSec = 0;
-            let currentActiveIndex = 0;
+            let currentActiveIndex = blocks.length - 1; // по умолчанию последний
 
             for (let i = 0; i < blocks.length; i++) {
                 accumulatedSec += blocks[i].durationSec;
@@ -625,13 +649,13 @@
                 const card = document.getElementById(`speechCard_${idx}`);
                 if (card) {
                     if (idx === currentActiveIndex) {
-                        card.classList.add('ring-2', 'ring-purple-500', 'bg-slate-800/90');
-                        card.classList.remove('opacity-50');
+                        card.classList.add('ring-2', 'ring-purple-500', 'bg-slate-800');
+                        card.classList.remove('opacity-40');
                     } else if (idx < currentActiveIndex) {
                         card.classList.add('opacity-40');
-                        card.classList.remove('ring-2', 'ring-purple-500', 'bg-slate-800/90');
+                        card.classList.remove('ring-2', 'ring-purple-500', 'bg-slate-800');
                     } else {
-                        card.classList.remove('opacity-40', 'ring-2', 'ring-purple-500', 'bg-slate-800/90');
+                        card.classList.remove('opacity-40', 'ring-2', 'ring-purple-500', 'bg-slate-800');
                     }
                 }
             });
